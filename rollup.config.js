@@ -1,11 +1,11 @@
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import babel from '@rollup/plugin-babel';
-import { terser } from '@rollup/plugin-terser';
-import typescript from 'rollup-plugin-typescript2';
-import dts from 'rollup-plugin-dts';
+const resolve = require('@rollup/plugin-node-resolve');
+const commonjs = require('@rollup/plugin-commonjs');
+const babel = require('@rollup/plugin-babel');
+const terser = require('@rollup/plugin-terser');
+const typescript = require('rollup-plugin-typescript2');
+const { dts } = require('rollup-plugin-dts');
 
-export default [
+module.exports = [
   // CommonJS build
   {
     input: 'src/index.ts',
