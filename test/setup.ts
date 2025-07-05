@@ -17,14 +17,14 @@ declare global {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 global.navigator = {
   userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   vendor: 'Google Inc.',
   maxTouchPoints: 0
 } as any;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 global.window = {
   innerWidth: 1920,
   innerHeight: 1080,
@@ -36,7 +36,7 @@ global.window = {
   }
 } as any;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 global.document = {
   documentMode: undefined,
   createElement: () => ({
@@ -50,7 +50,7 @@ global.document = {
   } as any
 } as any;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 global.console = {
   ...console,
   warn: jest.fn(),

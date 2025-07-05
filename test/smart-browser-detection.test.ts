@@ -60,13 +60,13 @@ describe('SmartBrowserDetection', () => {
   describe('apiDetection', () => {
     test('should detect Chrome via API', () => {
       // Mock Chrome API
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       (global as any).window = {
         ...global.window,
         chrome: { runtime: { onConnect: true } }
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const result: DetectionMethodResult = (detector as any).apiDetection();
       expect(result.browser).toBe('Chrome');
       expect(result.confidence).toBeGreaterThan(0.9);
