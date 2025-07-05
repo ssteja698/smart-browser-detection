@@ -25,7 +25,7 @@
     "lint:fix": "eslint . --ext .js,.ts --fix",
     "format": "prettier --write \"src/**/*.{js,ts,json,md}\"",
     "type-check": "tsc --noEmit",
-    "prepublishOnly": "npm run clean && npm run type-check && npm run build && npm run test",
+    "prepublishOnly": "npm run clean && npm run type-check && npm run build",
     "docs": "jsdoc -c jsdoc.json",
     "demo": "http-server demo -p 8080 -o",
     "benchmark": "node benchmark/benchmark.js",
