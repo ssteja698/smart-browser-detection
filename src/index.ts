@@ -140,13 +140,13 @@ export class SmartBrowserDetection {
 
     // Performance optimization: pre-compile regex patterns
     this.regexPatterns = {
-      chrome: /chrome\/(\d+\.\d+)/i,
-      firefox: /firefox\/(\d+\.\d+)/i,
-      safari: /version\/(\d+\.\d+)/i,
-      edge: /edg\/(\d+\.\d+)/i,
-      opera: /(?:opera|opr)\/(\d+\.\d+)/i,
+      chrome: /(?:chrome|crios)\/(\d+\.\d+(?:\.\d+)?)/i,
+      firefox: /(?:firefox|fxios)\/(\d+\.\d+(?:\.\d+)?)/i,
+      safari: /(?:version|safari)\/(\d+\.\d+(?:\.\d+)?)/i,
+      edge: /(?:edg|edge)\/(\d+\.\d+(?:\.\d+)?)/i,
+      opera: /(?:opera|opr)\/(\d+\.\d+(?:\.\d+)?)/i,
       ie: /(?:msie\s(\d+\.\d+)|rv:(\d+\.\d+))/i,
-      android: /android\s(\d+\.\d+)/i,
+      android: /android\s(\d+\.\d+(?:\.\d+)?)/i,
       ios: /os\s(\d+_\d+)/i,
       windows: /windows nt (10\.0|6\.3|6\.2|6\.1)/i,
       macos: /mac os x 10_(\d+)/i
@@ -312,8 +312,13 @@ export class SmartBrowserDetection {
       method: 'apiDetection'
     };
 
+    // Firefox-specific APIs (check first to avoid false positives)
+    if (window.InstallTrigger !== undefined) {
+      result.browser = 'Firefox';
+      result.confidence = 0.95;
+    }
     // Chrome-specific APIs
-    if (window.chrome && window.chrome.runtime && window.chrome.runtime.onConnect) {
+    else if (window.chrome && window.chrome.runtime && window.chrome.runtime.onConnect) {
       result.browser = 'Chrome';
       result.confidence = 0.95;
     }
@@ -404,10 +409,31 @@ export class SmartBrowserDetection {
 
     const ua = navigator.userAgent.toLowerCase();
 
+    // Firefox detection (prioritize over Safari to avoid false positives)
+    if (ua.includes('firefox') || ua.includes('fxios')) {
+      result.browser = 'Firefox';
+      result.confidence = 0.85;
+      return result;
+    }
+
     // Edge detection (prioritize 'edg' over 'chrome')
     if (ua.includes('edg')) {
       result.browser = 'Edge';
       result.confidence = 0.85;
+      return result;
+    }
+
+    // Opera detection
+    if (ua.includes('opr') || ua.includes('opera')) {
+      result.browser = 'Opera';
+      result.confidence = 0.85;
+      return result;
+    }
+
+    // Internet Explorer detection
+    if (ua.includes('msie') || ua.includes('trident')) {
+      result.browser = 'Internet Explorer';
+      result.confidence = 0.95;
       return result;
     }
 
@@ -419,42 +445,36 @@ export class SmartBrowserDetection {
         result.browser = 'Chrome';
         result.confidence = 0.95;
       }
+      return result;
     }
+
     // Special case: Chrome mobile emulation (UA shows Safari but vendor shows Google)
-    else if (ua.includes('safari') && navigator.vendor.toLowerCase().includes('google')) {
+    if (ua.includes('safari') && navigator.vendor.toLowerCase().includes('google')) {
       result.browser = 'Chrome';
       result.confidence = 0.85;
+      return result;
     }
+
     // Edge detection (multiple patterns)
-    else if (ua.includes('edge')) {
+    if (ua.includes('edge')) {
       result.browser = 'Edge';
       result.confidence = 0.85;
+      return result;
     }
+
     // Edge mobile on Android (might look like Chrome)
-    else if (ua.includes('android') && ua.includes('chrome') && ua.includes('safari') &&
+    if (ua.includes('android') && ua.includes('chrome') && ua.includes('safari') &&
       !ua.includes('firefox') && navigator.vendor === '') {
       result.browser = 'Edge';
       result.confidence = 0.8;
+      return result;
     }
-    // Firefox detection
-    else if (ua.includes('firefox') || ua.includes('fxios')) {
-      result.browser = 'Firefox';
-      result.confidence = 0.85;
-    }
-    // Safari detection
-    else if (ua.includes('safari') && !ua.includes('chrome')) {
+
+    // Safari detection (last resort, after all other browsers)
+    if (ua.includes('safari') && !ua.includes('chrome')) {
       result.browser = 'Safari';
       result.confidence = 0.7;
-    }
-    // Opera detection
-    else if (ua.includes('opr') || ua.includes('opera')) {
-      result.browser = 'Opera';
-      result.confidence = 0.85;
-    }
-    // Internet Explorer detection
-    else if (ua.includes('msie') || ua.includes('trident')) {
-      result.browser = 'Internet Explorer';
-      result.confidence = 0.95;
+      return result;
     }
 
     return result;
@@ -560,27 +580,106 @@ export class SmartBrowserDetection {
    * @returns Browser version
    */
   public getBrowserVersion(browser: BrowserType): string {
+    // Try to get version from navigator.userAgentData first (modern browsers)
+    if (navigator.userAgentData && navigator.userAgentData.brands) {
+      const brands = navigator.userAgentData.brands;
+      for (const brand of brands) {
+        if (brand.brand.toLowerCase() === browser.toLowerCase()) {
+          return brand.version;
+        }
+        // Handle Edge case
+        if (browser === 'Edge' && brand.brand === 'Microsoft Edge') {
+          return brand.version;
+        }
+        // Handle Chrome case
+        if (browser === 'Chrome' && brand.brand === 'Google Chrome') {
+          return brand.version;
+        }
+      }
+    }
     const ua = navigator.userAgent;
     let version = 'Unknown';
 
     if (browser === 'Chrome') {
-      const match = ua.match(this.regexPatterns.chrome);
+      // Try multiple patterns for Chrome
+      let match = ua.match(this.regexPatterns.chrome);
+      if (!match) {
+        // Fallback for Chrome mobile
+        match = ua.match(/crios\/(\d+\.\d+(?:\.\d+)?)/i);
+      }
+      if (!match) {
+        // Fallback for Chrome desktop
+        match = ua.match(/chrome\/(\d+\.\d+(?:\.\d+)?)/i);
+      }
       version = match && match[1] ? match[1] : 'Unknown';
     } else if (browser === 'Firefox') {
-      const match = ua.match(this.regexPatterns.firefox);
+      // Try multiple patterns for Firefox
+      let match = ua.match(this.regexPatterns.firefox);
+      if (!match) {
+        // Fallback for Firefox mobile
+        match = ua.match(/fxios\/(\d+\.\d+(?:\.\d+)?)/i);
+      }
+      if (!match) {
+        // Fallback for Firefox desktop
+        match = ua.match(/firefox\/(\d+\.\d+(?:\.\d+)?)/i);
+      }
       version = match && match[1] ? match[1] : 'Unknown';
     } else if (browser === 'Safari') {
-      const match = ua.match(this.regexPatterns.safari);
+      // Try multiple patterns for Safari
+      let match = ua.match(this.regexPatterns.safari);
+      if (!match) {
+        // Fallback for Safari version
+        match = ua.match(/version\/(\d+\.\d+(?:\.\d+)?)/i);
+      }
+      if (!match) {
+        // Fallback for Safari mobile
+        match = ua.match(/mobile\/\w+\s(\d+\.\d+(?:\.\d+)?)/i);
+      }
       version = match && match[1] ? match[1] : 'Unknown';
     } else if (browser === 'Edge') {
-      const match = ua.match(this.regexPatterns.edge);
+      // Try multiple patterns for Edge
+      let match = ua.match(this.regexPatterns.edge);
+      if (!match) {
+        // Fallback for Edge legacy
+        match = ua.match(/edge\/(\d+\.\d+(?:\.\d+)?)/i);
+      }
+      if (!match) {
+        // Fallback for Edge Chromium
+        match = ua.match(/edg\/(\d+\.\d+(?:\.\d+)?)/i);
+      }
       version = match && match[1] ? match[1] : 'Unknown';
     } else if (browser === 'Opera') {
-      const match = ua.match(this.regexPatterns.opera);
+      // Try multiple patterns for Opera
+      let match = ua.match(this.regexPatterns.opera);
+      if (!match) {
+        // Fallback for Opera mobile
+        match = ua.match(/opr\/(\d+\.\d+(?:\.\d+)?)/i);
+      }
+      if (!match) {
+        // Fallback for Opera desktop
+        match = ua.match(/opera\/(\d+\.\d+(?:\.\d+)?)/i);
+      }
       version = match && match[1] ? match[1] : 'Unknown';
     } else if (browser === 'Internet Explorer') {
-      const match = ua.match(this.regexPatterns.ie);
+      // Try multiple patterns for IE
+      let match = ua.match(this.regexPatterns.ie);
+      if (!match) {
+        // Fallback for IE 11
+        match = ua.match(/rv:(\d+\.\d+(?:\.\d+)?)/i);
+      }
+      if (!match) {
+        // Fallback for older IE
+        match = ua.match(/msie\s(\d+\.\d+(?:\.\d+)?)/i);
+      }
       version = match && (match[1] || match[2]) ? (match[1] || match[2] || 'Unknown') : 'Unknown';
+    }
+
+    // Additional fallback: try to extract any version number if still unknown
+    if (version === 'Unknown' && browser !== 'Unknown') {
+      const genericMatch = ua.match(/(\d+\.\d+(?:\.\d+)?)/);
+      if (genericMatch && genericMatch[1]) {
+        version = genericMatch[1];
+      }
     }
 
     return version;
@@ -592,17 +691,49 @@ export class SmartBrowserDetection {
    * @returns Engine information
    */
   public getEngineInfo(browser: BrowserType): EngineInfo {
+    const browserVersion = this.getBrowserVersion(browser);
+
     const engineMap: Record<BrowserType, EngineInfo> = {
-      'Chrome': { engine: 'Blink', version: this.getBrowserVersion(browser) },
-      'Edge': { engine: 'Blink', version: this.getBrowserVersion(browser) },
-      'Firefox': { engine: 'Gecko', version: this.getBrowserVersion(browser) },
-      'Safari': { engine: 'WebKit', version: this.getBrowserVersion(browser) },
-      'Opera': { engine: 'Blink', version: this.getBrowserVersion(browser) },
-      'Internet Explorer': { engine: 'Trident', version: this.getBrowserVersion(browser) },
+      'Chrome': { engine: 'Blink', version: browserVersion },
+      'Edge': { engine: 'Blink', version: browserVersion },
+      'Firefox': { engine: 'Gecko', version: browserVersion },
+      'Safari': { engine: 'WebKit', version: browserVersion },
+      'Opera': { engine: 'Blink', version: browserVersion },
+      'Internet Explorer': { engine: 'Trident', version: browserVersion },
       'Unknown': { engine: 'Unknown', version: 'Unknown' }
     };
 
-    return engineMap[browser] || { engine: 'Unknown', version: 'Unknown' };
+    const result = engineMap[browser] || { engine: 'Unknown', version: 'Unknown' };
+
+    // If engine version is still unknown, try to extract from user agent
+    if (result.version === 'Unknown' && browser !== 'Unknown') {
+      const ua = navigator.userAgent;
+
+      // Try to extract engine version from user agent
+      if (result.engine === 'Blink') {
+        const blinkMatch = ua.match(/blink\/(\d+\.\d+(?:\.\d+)?)/i);
+        if (blinkMatch && blinkMatch[1]) {
+          result.version = blinkMatch[1];
+        }
+      } else if (result.engine === 'Gecko') {
+        const geckoMatch = ua.match(/gecko\/(\d+\.\d+(?:\.\d+)?)/i);
+        if (geckoMatch && geckoMatch[1]) {
+          result.version = geckoMatch[1];
+        }
+      } else if (result.engine === 'WebKit') {
+        const webkitMatch = ua.match(/webkit\/(\d+\.\d+(?:\.\d+)?)/i);
+        if (webkitMatch && webkitMatch[1]) {
+          result.version = webkitMatch[1];
+        }
+      } else if (result.engine === 'Trident') {
+        const tridentMatch = ua.match(/trident\/(\d+\.\d+(?:\.\d+)?)/i);
+        if (tridentMatch && tridentMatch[1]) {
+          result.version = tridentMatch[1];
+        }
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -627,6 +758,9 @@ export class SmartBrowserDetection {
         } else if (match[1] === '6.1') {
           osVersion = 'Windows 7';
         }
+      } else {
+        // Fallback for Windows without specific version
+        osVersion = 'Windows';
       }
     } else if (/mac/i.test(ua) || /macintosh/i.test(ua)) {
       os = 'macOS';
@@ -639,21 +773,73 @@ export class SmartBrowserDetection {
           osVersion = 'macOS Mojave';
         } else if (version >= 13) {
           osVersion = 'macOS High Sierra';
+        } else if (version >= 12) {
+          osVersion = 'macOS Sierra';
+        } else if (version >= 11) {
+          osVersion = 'macOS El Capitan';
+        } else if (version >= 10) {
+          osVersion = 'macOS Yosemite';
+        } else {
+          osVersion = `macOS ${version}`;
         }
+      } else {
+        // Fallback for macOS without specific version
+        osVersion = 'macOS';
       }
     } else if (/linux/i.test(ua) || /x11/i.test(ua)) {
       os = 'Linux';
-      osVersion = 'Linux';
+      // Try to detect specific Linux distributions
+      if (ua.includes('ubuntu')) {
+        osVersion = 'Ubuntu';
+      } else if (ua.includes('fedora')) {
+        osVersion = 'Fedora';
+      } else if (ua.includes('debian')) {
+        osVersion = 'Debian';
+      } else if (ua.includes('centos')) {
+        osVersion = 'CentOS';
+      } else if (ua.includes('redhat')) {
+        osVersion = 'Red Hat';
+      } else {
+        osVersion = 'Linux';
+      }
     } else if (/android/i.test(ua)) {
       os = 'Android';
       const match = ua.match(this.regexPatterns.android);
-      osVersion = match && match[1] ? `Android ${match[1]}` : 'Android';
+      if (match && match[1]) {
+        const version = parseFloat(match[1]);
+        if (version >= 14) {
+          osVersion = `Android ${match[1]} (Android 14+)`;
+        } else if (version >= 13) {
+          osVersion = `Android ${match[1]} (Android 13)`;
+        } else if (version >= 12) {
+          osVersion = `Android ${match[1]} (Android 12)`;
+        } else if (version >= 11) {
+          osVersion = `Android ${match[1]} (Android 11)`;
+        } else if (version >= 10) {
+          osVersion = `Android ${match[1]} (Android 10)`;
+        } else {
+          osVersion = `Android ${match[1]}`;
+        }
+      } else {
+        osVersion = 'Android';
+      }
     } else if (/iphone|ipad|ipod/i.test(ua)) {
       os = 'iOS';
       const match = ua.match(this.regexPatterns.ios);
       if (match && match[1]) {
         const version = match[1].replace(/_/g, '.');
-        osVersion = `iOS ${version}`;
+        const versionNum = parseFloat(version);
+        if (versionNum >= 17) {
+          osVersion = `iOS ${version} (iOS 17+)`;
+        } else if (versionNum >= 16) {
+          osVersion = `iOS ${version} (iOS 16)`;
+        } else if (versionNum >= 15) {
+          osVersion = `iOS ${version} (iOS 15)`;
+        } else if (versionNum >= 14) {
+          osVersion = `iOS ${version} (iOS 14)`;
+        } else {
+          osVersion = `iOS ${version}`;
+        }
       } else {
         osVersion = 'iOS';
       }

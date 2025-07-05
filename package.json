@@ -1,6 +1,6 @@
 {
   "name": "smart-browser-detection",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Smart browser detection library with anti-spoofing capabilities, multi-method detection, and mobile browser support. Outperforms UA-Parser-JS with superior accuracy and spoofing resistance.",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
