@@ -2,8 +2,8 @@
 
 [![npm version](https://badge.fury.io/js/smart-browser-detection.svg)](https://badge.fury.io/js/smart-browser-detection)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://github.com/smart-browser-detection/smart-browser-detection/workflows/CI/badge.svg)](https://github.com/smart-browser-detection/smart-browser-detection/actions)
-[![Coverage](https://codecov.io/gh/smart-browser-detection/smart-browser-detection/branch/main/graph/badge.svg)](https://codecov.io/gh/smart-browser-detection/smart-browser-detection)
+[![Build Status](https://github.com/ssteja698/smart-browser-detection/workflows/CI/badge.svg)](https://github.com/ssteja698/smart-browser-detection/actions)
+[![Coverage](https://codecov.io/gh/ssteja698/smart-browser-detection/branch/main/graph/badge.svg)](https://codecov.io/gh/ssteja698/smart-browser-detection)
 
 > **The Smartest Browser Detection Library** - Outperforms UA-Parser-JS with superior accuracy, anti-spoofing capabilities, and comprehensive mobile browser support.
 
@@ -291,9 +291,9 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/smart-browser-detection/smart-browser-detection/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/smart-browser-detection/smart-browser-detection/discussions)
-- **Email**: support@smart-browser-detection.com
+- **Issues**: [GitHub Issues](https://github.com/ssteja698/smart-browser-detection/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/ssteja698/smart-browser-detection/discussions)
+- **Email**: ssteja2205@gmail.com
 
 ---
 

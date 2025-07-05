@@ -54,19 +54,19 @@
     "ua-parser-alternative"
   ],
   "author": {
-    "name": "Smart Browser Detection Team",
-    "email": "support@smart-browser-detection.com",
-    "url": "https://github.com/smart-browser-detection"
+    "name": "Sai Siva Teja B",
+    "email": "ssteja2205@gmail.com",
+    "url": "https://github.com/ssteja698"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/smart-browser-detection/smart-browser-detection.git"
+    "url": "https://github.com/ssteja698/smart-browser-detection.git"
   },
   "bugs": {
-    "url": "https://github.com/smart-browser-detection/smart-browser-detection/issues"
+    "url": "https://github.com/ssteja698/smart-browser-detection/issues"
   },
-  "homepage": "https://github.com/smart-browser-detection/smart-browser-detection#readme",
+  "homepage": "https://github.com/ssteja698/smart-browser-detection#readme",
   "engines": {
     "node": ">=12.0.0"
   },
