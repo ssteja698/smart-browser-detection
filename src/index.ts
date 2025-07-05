@@ -917,5 +917,4 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = SmartBrowserDetection;
 }
 
-// Default export
 export default SmartBrowserDetection; 

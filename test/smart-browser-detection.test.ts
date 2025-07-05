@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SmartBrowserDetection, BrowserDetectionResult, DetectionMethodResult } from '../src/index';
+import SmartBrowserDetection, { BrowserDetectionResult, DetectionMethodResult } from '../src/index';
 
 describe('SmartBrowserDetection', () => {
   let detector: SmartBrowserDetection;
@@ -60,13 +60,13 @@ describe('SmartBrowserDetection', () => {
   describe('apiDetection', () => {
     test('should detect Chrome via API', () => {
       // Mock Chrome API
-       
+
       (global as any).window = {
         ...global.window,
         chrome: { runtime: { onConnect: true } }
       };
 
-       
+
       const result: DetectionMethodResult = (detector as any).apiDetection();
       expect(result.browser).toBe('Chrome');
       expect(result.confidence).toBeGreaterThan(0.9);

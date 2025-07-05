@@ -28,7 +28,8 @@
     "prepublishOnly": "npm run clean && npm run type-check && npm run build && npm run test",
     "docs": "jsdoc -c jsdoc.json",
     "demo": "http-server demo -p 8080 -o",
-    "benchmark": "node benchmark/benchmark.js"
+    "benchmark": "node benchmark/benchmark.js",
+    "clean": "rm -rf dist"
   },
   "keywords": [
     "browser-detection",
